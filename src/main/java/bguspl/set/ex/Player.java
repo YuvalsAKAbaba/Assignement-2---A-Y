@@ -1,5 +1,8 @@
 package bguspl.set.ex;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 import bguspl.set.Env;
 
 /**
@@ -49,7 +52,8 @@ public class Player implements Runnable {
      * The current score of the player.
      */
     private int score;
-
+    private final Dealer dealer;
+    protected final BlockingQueue<Integer> inputQueue;
     /**
      * The class constructor.
      *
@@ -61,9 +65,11 @@ public class Player implements Runnable {
      */
     public Player(Env env, Dealer dealer, Table table, int id, boolean human) {
         this.env = env;
+        this.dealer = dealer;
         this.table = table;
         this.id = id;
         this.human = human;
+        this.inputQueue = new ArrayBlockingQueue<>(3, true);
     }
 
     /**
@@ -73,6 +79,7 @@ public class Player implements Runnable {
     public void run() {
         playerThread = Thread.currentThread();
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
+        System.out.println("thread " + Thread.currentThread().getName() + " starting."); //Added NoteLine
         if (!human) createArtificialIntelligence();
 
         while (!terminate) {
@@ -115,6 +122,9 @@ public class Player implements Runnable {
      */
     public void keyPressed(int slot) {
         // TODO implement
+        if(inputQueue.remainingCapacity() > 0){
+            inputQueue.add(slot);            
+        }
     }
 
     /**
@@ -135,6 +145,10 @@ public class Player implements Runnable {
      */
     public void penalty() {
         // TODO implement
+    }
+
+    public boolean isHuman() {
+        return human;
     }
 
     public int score() {

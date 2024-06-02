@@ -2,9 +2,15 @@ package bguspl.set.ex;
 
 import bguspl.set.Env;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +35,13 @@ public class Table {
      */
     protected final Integer[] cardToSlot; // slot per card (if any)
 
+    protected ConcurrentLinkedQueue<Integer>[] slotTokensToPlayers; //Contains all players, which have a token in the slot
+    protected ArrayList<Integer>[] playersTokensToSlot; // Contains all tokens locations(slots), put by a player
+
+    private ReentrantReadWriteLock readWriteLock;
+    public Lock readLock;
+    public Lock writeLock;
+
     /**
      * Constructor for testing.
      *
@@ -41,6 +54,18 @@ public class Table {
         this.env = env;
         this.slotToCard = slotToCard;
         this.cardToSlot = cardToSlot;
+        this.slotTokensToPlayers = new ConcurrentLinkedQueue[env.config.tableSize];
+        for (int i = 0; i < slotTokensToPlayers.length; i++) {
+            slotTokensToPlayers[i] = new ConcurrentLinkedQueue<>();
+        }
+        this.playersTokensToSlot = new ArrayList[env.config.players];
+        for (int i = 0; i < playersTokensToSlot.length; i++) {
+            playersTokensToSlot[i] = new ArrayList<>();
+        }
+        readWriteLock = new ReentrantReadWriteLock(true);
+        writeLock = readWriteLock.writeLock();
+        Condition condition = writeLock.newCondition();
+        readLock = readWriteLock.readLock();
     }
 
     /**
@@ -93,10 +118,30 @@ public class Table {
 
         cardToSlot[card] = slot;
         slotToCard[slot] = card;
-
-        // TODO implement
+        // TODO implement - done
+        env.ui.placeCard(card,slot);
     }
 
+    public void placeCard(int card) {
+        if (hasEmptySlot()) {
+            placeCard(card, findEmptySlot());
+        }
+    }
+
+    public boolean hasEmptySlot() {
+        for (Integer slot : slotToCard) {
+            if (slot == null) return true;
+        }
+        return false;
+    }
+
+    private int findEmptySlot() {
+        for (int i = 0; i < slotToCard.length; i++) {
+            if (slotToCard[i] == null) return i;
+        }
+        throw new NoSuchElementException();
+    }
+    
     /**
      * Removes a card from a grid slot on the table.
      * @param slot - the slot from which to remove the card.
@@ -105,8 +150,16 @@ public class Table {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
-
         // TODO implement
+        cardToSlot[slotToCard[slot]] = null;
+        slotToCard[slot] = null;
+        env.ui.removeCard(slot);
+        env.ui.removeTokens(slot);
+        // clean all tokens
+        for(Integer id : slotTokensToPlayers[slot]) { 
+            removeToken(id, slot); 
+        }
+        
     }
 
     /**
@@ -116,6 +169,10 @@ public class Table {
      */
     public void placeToken(int player, int slot) {
         // TODO implement
+        if(slotToCard[slot] == null)return;
+        playersTokensToSlot[player].add((Integer)slot);
+        slotTokensToPlayers[slot].add((Integer)player);
+        env.ui.placeToken(player, slot);
     }
 
     /**
@@ -126,6 +183,11 @@ public class Table {
      */
     public boolean removeToken(int player, int slot) {
         // TODO implement
-        return false;
+        if(playersTokensToSlot[player].contains(slot) && slotTokensToPlayers[slot].contains(player)){
+            playersTokensToSlot[player].remove((Integer)player);
+            slotTokensToPlayers[slot].remove((Integer)slot);
+            return true;
+        }        
+        return false;        
     }
 }

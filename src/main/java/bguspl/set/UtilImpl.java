@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 /**
- * The implementation of the UserInterface interface.
+ * The implementation of the Util interface.
  */
 public class UtilImpl implements Util {
 
