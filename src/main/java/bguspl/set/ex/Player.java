@@ -76,16 +76,19 @@ public class Player implements Runnable {
      * The main player thread of each player starts here (main loop for the player thread).
      */
     @Override
-    public void run() {
-        playerThread = Thread.currentThread();
+    public void run() {        
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
+        playerThread = Thread.currentThread();
         System.out.println("thread " + Thread.currentThread().getName() + " starting."); //Added NoteLine
         if (!human) createArtificialIntelligence();
 
         while (!terminate) {
             // TODO implement main player loop
         }
-        if (!human) try { aiThread.join(); } catch (InterruptedException ignored) {}
+        if (!human)
+         try { 
+            aiThread.join(); 
+        } catch (InterruptedException ignored) {}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
     }
 
@@ -112,7 +115,9 @@ public class Player implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
-        // TODO implement
+        terminate = true;
+        playerThread.interrupt();
+        // TODO implement - not yet
     }
 
     /**
@@ -147,6 +152,10 @@ public class Player implements Runnable {
         // TODO implement
     }
 
+    public synchronized void wakeUp() {
+       notify();
+    }
+
     public boolean isHuman() {
         return human;
     }
@@ -154,4 +163,16 @@ public class Player implements Runnable {
     public int score() {
         return score;
     }
+
+    protected BlockingQueue<Integer> getInputQueue(){
+        return inputQueue;
+    }
+
+    public void joinPlayerThread() {
+        try {
+            playerThread.join();
+        }   catch (InterruptedException ignored) {}
+    }
+
+
 }

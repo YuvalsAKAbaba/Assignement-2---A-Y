@@ -35,7 +35,7 @@ public class Table {
      */
     protected final Integer[] cardToSlot; // slot per card (if any)
 
-    protected ConcurrentLinkedQueue<Integer>[] slotTokensToPlayers; //Contains all players, which have a token in the slot
+    protected ConcurrentLinkedQueue<Integer>[] tokenSlotToPlayers; //Contains all players, which have a token in the slot
     protected ArrayList<Integer>[] playersTokensToSlot; // Contains all tokens locations(slots), put by a player
 
     private ReentrantReadWriteLock readWriteLock;
@@ -54,9 +54,9 @@ public class Table {
         this.env = env;
         this.slotToCard = slotToCard;
         this.cardToSlot = cardToSlot;
-        this.slotTokensToPlayers = new ConcurrentLinkedQueue[env.config.tableSize];
-        for (int i = 0; i < slotTokensToPlayers.length; i++) {
-            slotTokensToPlayers[i] = new ConcurrentLinkedQueue<>();
+        this.tokenSlotToPlayers = new ConcurrentLinkedQueue[env.config.tableSize];
+        for (int i = 0; i < tokenSlotToPlayers.length; i++) {
+            tokenSlotToPlayers[i] = new ConcurrentLinkedQueue<>();
         }
         this.playersTokensToSlot = new ArrayList[env.config.players];
         for (int i = 0; i < playersTokensToSlot.length; i++) {
@@ -156,10 +156,16 @@ public class Table {
         env.ui.removeCard(slot);
         env.ui.removeTokens(slot);
         // clean all tokens
-        for(Integer id : slotTokensToPlayers[slot]) { 
-            removeToken(id, slot); 
+        for(Integer playerID : tokenSlotToPlayers[slot]) { 
+            removeToken(playerID, slot); 
+        }        
+    }
+
+    public void removeAllCards() {
+        //TODO implement
+        for (int i = 0; i < env.config.tableSize; i++) {
+            if(slotToCard[i]!=null) removeCard(i);
         }
-        
     }
 
     /**
@@ -171,7 +177,7 @@ public class Table {
         // TODO implement
         if(slotToCard[slot] == null)return;
         playersTokensToSlot[player].add((Integer)slot);
-        slotTokensToPlayers[slot].add((Integer)player);
+        tokenSlotToPlayers[slot].add((Integer)player);
         env.ui.placeToken(player, slot);
     }
 
@@ -183,11 +189,35 @@ public class Table {
      */
     public boolean removeToken(int player, int slot) {
         // TODO implement
-        if(playersTokensToSlot[player].contains(slot) && slotTokensToPlayers[slot].contains(player)){
+        if(playersTokensToSlot[player].contains(slot) && tokenSlotToPlayers[slot].contains(player)){
             playersTokensToSlot[player].remove((Integer)player);
-            slotTokensToPlayers[slot].remove((Integer)slot);
+            tokenSlotToPlayers[slot].remove((Integer)slot);
+            env.ui.removeToken(player, slot);
             return true;
         }        
         return false;        
+    }
+
+    public Integer[] playerCards(int player) {
+        Integer[] cards = new Integer[playersTokensToSlot[player].size()];
+        for (int i = 0; i < playersTokensToSlot[player].size(); i++) {
+            cards[i] = slotToCard[playersTokensToSlot[player].get(i)];
+        }
+        return cards;
+    }
+
+    public List<Integer> tableCardsToList() {
+        List<Integer> allCardsOnTable = new ArrayList<>();
+        for (int i = 0; i < slotToCard.length; i++) {
+            if (slotToCard[i] != null) {
+                allCardsOnTable.add(slotToCard[i]);
+            }
+        }
+        return allCardsOnTable;
+    }
+
+    public int getSlotFromCard(int card){
+        if(card > cardToSlot.length) throw new NoSuchElementException();
+        return cardToSlot[card];
     }
 }
