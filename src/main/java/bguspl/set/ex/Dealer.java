@@ -1,7 +1,6 @@
 package bguspl.set.ex;
 
 import bguspl.set.Env;
-import bguspl.set.UtilImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -226,7 +225,7 @@ public class Dealer implements Runnable {
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
     private synchronized void sleepUntilWokenOrTimeout() {
-`       try {
+        try {
             this.wait(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
        
