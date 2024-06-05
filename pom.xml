@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>bguspl</groupId>
-    <artifactId>Set_Card_Game</artifactId>
+    <artifactId>Set_Cardgame</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -48,7 +48,7 @@
         </plugins>
     </build>
 
-    <name>Set_Card_Game</name>
+    <name>Set_Cardgame</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>

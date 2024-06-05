@@ -118,7 +118,6 @@ public class Table {
 
         cardToSlot[card] = slot;
         slotToCard[slot] = card;
-        // TODO implement - done
         env.ui.placeCard(card,slot);
     }
 
@@ -150,19 +149,17 @@ public class Table {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
-        // TODO implement
+        
         cardToSlot[slotToCard[slot]] = null;
         slotToCard[slot] = null;
         env.ui.removeCard(slot);
-        env.ui.removeTokens(slot);
-        // clean all tokens
-        for(Integer playerID : tokenSlotToPlayers[slot]) { 
+        env.ui.removeTokens(slot);        
+        for(Integer playerID : tokenSlotToPlayers[slot]) { // clean all tokens
             removeToken(playerID, slot); 
         }        
     }
 
     public void removeAllCards() {
-        //TODO implement
         for (int i = 0; i < env.config.tableSize; i++) {
             if(slotToCard[i]!=null) removeCard(i);
         }
@@ -174,11 +171,18 @@ public class Table {
      * @param slot   - the slot on which to place the token.
      */
     public void placeToken(int player, int slot) {
-        // TODO implement
         if(slotToCard[slot] == null)return;
-        playersTokensToSlot[player].add((Integer)slot);
         tokenSlotToPlayers[slot].add((Integer)player);
+        playersTokensToSlot[player].add((Integer)slot);        
         env.ui.placeToken(player, slot);
+    }
+
+    public boolean playerAlreadyPlacedThisToken(int player, int slot) {
+        return playersTokensToSlot[player].contains(slot);
+    }
+
+    public boolean playerTokensIsFeatureSize(int player) {
+        return playersTokensToSlot[player].size() == env.config.featureSize;
     }
 
     /**
@@ -188,10 +192,9 @@ public class Table {
      * @return       - true iff a token was successfully removed.
      */
     public boolean removeToken(int player, int slot) {
-        // TODO implement
         if(playersTokensToSlot[player].contains(slot) && tokenSlotToPlayers[slot].contains(player)){
-            playersTokensToSlot[player].remove((Integer)player);
-            tokenSlotToPlayers[slot].remove((Integer)slot);
+            playersTokensToSlot[player].remove((Integer)slot);
+            tokenSlotToPlayers[slot].remove((Integer)player);
             env.ui.removeToken(player, slot);
             return true;
         }        
