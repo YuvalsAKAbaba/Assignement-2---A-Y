@@ -182,7 +182,8 @@ public class Player implements Runnable {
      */
     public synchronized void point() {
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
-        env.ui.setScore(id, ++score);
+        score++;
+        env.ui.setScore(id, score);
         setFreeze(env.config.pointFreezeMillis);
         wakeUp();
     }

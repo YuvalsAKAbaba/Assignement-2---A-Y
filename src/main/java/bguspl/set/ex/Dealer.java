@@ -180,7 +180,7 @@ public class Dealer implements Runnable {
         while(!playersIdWithSet.isEmpty()){
             Integer playerId = playersIdWithSet.peek();
             Integer[] playerSetCards = table.playerCards(playerId);
-            if(env.util.testSet(convertIntegerArrToIntArr(playerSetCards))){
+            if(env.util.testSet(convertIntegerArrToIntArr(playerSetCards))){                
                 return true;
             }
             else{
