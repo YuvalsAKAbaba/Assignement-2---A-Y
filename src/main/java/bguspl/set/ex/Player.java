@@ -234,8 +234,6 @@ public class Player implements Runnable {
 
     public void setMaster() {
         iAmMaster = true;
-    }
-
-    
+    }    
 
 }
